@@ -1,0 +1,24 @@
+# Node
+node_modules/
+dist/
+build/
+.svelte-kit/
+*.log
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Terraform (state e tfvars guardam segredos)
+infra/.terraform/
+infra/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Sistema
+.DS_Store
+Thumbs.db
