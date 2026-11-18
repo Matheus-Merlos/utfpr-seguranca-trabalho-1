@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-sigacad}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sigacad}
+      POSTGRES_DB: ${DB_NAME:-sigacad}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sigacad"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-sigacad}
+      DB_PASSWORD: ${DB_PASSWORD:-sigacad}
+      DB_NAME: ${DB_NAME:-sigacad}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - /app/node_modules
+
+  front:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://api:3000
+    volumes:
+      - ./frontend/src:/app/src
+      - /app/node_modules
+
+volumes:
+  pgdata:
