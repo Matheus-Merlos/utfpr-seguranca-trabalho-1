@@ -1,12 +1,7 @@
 # Copie este arquivo para terraform.tfvars e preencha os valores
 # NÃO commite terraform.tfvars no repositório!
 
-domain          = "sigacad.exemplo.com"
-do_token        = "dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-owner_ip        = "203.0.113.50/32"
-origin_secret   = "um-segredo-longo-e-aleatorio-aqui"
-basic_auth_user = "sigacad"
-basic_auth_pass = "senha-do-basic-auth"
-ssh_public_key  = "ssh-ed25519 AAAA... seu-email@exemplo.com"
-droplet_size    = "s-1vcpu-1gb"
-droplet_region  = "nyc1"
+domain         = "sigacad.com.br"
+do_token       = "dop_v1_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+droplet_size   = "s-1vcpu-1gb"
+droplet_region = "nyc3"

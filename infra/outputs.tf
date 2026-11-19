@@ -1,29 +1,51 @@
-output "cloudfront_domain" {
-  description = "Domínio do CloudFront"
-  value       = aws_cloudfront_distribution.main.domain_name
-}
-
-output "cloudfront_url" {
-  description = "URL do CloudFront"
-  value       = "https://${var.domain}"
-}
-
 output "droplet_ip" {
   description = "IP público do Droplet"
   value       = digitalocean_droplet.api.ipv4_address
 }
 
-output "api_origin_domain" {
-  description = "Domínio da origem da API"
-  value       = "api-origin.${var.domain}"
+output "droplet_public_key" {
+  description = "Chave SSH publica do droplet"
+  value       = digitalocean_ssh_key.sigacad_ssh_key.public_key
 }
 
-output "s3_bucket" {
-  description = "Nome do bucket S3"
-  value       = aws_s3_bucket.frontend.bucket
+output "droplet_secret_key" {
+  description = "Chave SSH privada do droplet"
+  sensitive   = true
+  value       = tls_private_key.sigacad_key.private_key_openssh
 }
 
-output "nameservers" {
-  description = "Nameservers do Route53 (configurar no registrar)"
-  value       = aws_route53_zone.main.name_servers
+output "app_url" {
+  description = "URL da aplicação"
+  value       = "https://${var.domain}"
+}
+
+output "dns_instructions" {
+  description = "Instruções para configurar DNS no registro.br"
+  value       = <<-EOT
+
+    Configure os seguintes registros DNS no registro.br:
+
+    Tipo    Nome                    Valor
+    ----    ----                    -----
+    A       sigacad.com.br          ${digitalocean_droplet.api.ipv4_address}
+    CNAME   www.sigacad.com.br      sigacad.com.br
+
+    Após configurar, aguarde a propagação DNS (pode levar até 24h).
+
+  EOT
+}
+
+output "deploy_instructions" {
+  description = "Instruções para deploy"
+  value       = <<-EOT
+
+    Deploy do frontend:
+    $ cd frontend && npm run build
+    $ scp -r dist/* root@${digitalocean_droplet.api.ipv4_address}:/var/www/frontend/
+
+    Deploy do backend:
+    $ scp docker-compose.yml root@${digitalocean_droplet.api.ipv4_address}:/opt/sigacad/
+    $ ssh root@${digitalocean_droplet.api.ipv4_address} 'cd /opt/sigacad && ./deploy.sh'
+
+  EOT
 }

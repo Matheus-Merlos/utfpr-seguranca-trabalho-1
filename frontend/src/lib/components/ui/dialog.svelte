@@ -31,6 +31,7 @@
     <div
       class="fixed inset-0 bg-black/50"
       onclick={handleBackdropClick}
+      onkeydown={(e) => e.key === 'Enter' && handleBackdropClick()}
       role="button"
       tabindex="-1"
     ></div>

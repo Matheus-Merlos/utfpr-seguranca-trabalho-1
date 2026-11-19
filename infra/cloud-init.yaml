@@ -21,6 +21,11 @@ runcmd:
   # Create app directory
   - mkdir -p /opt/sigacad
 
+  # Create frontend directory
+  - mkdir -p /var/www/frontend
+  - chown -R www-data:www-data /var/www/frontend
+  - chmod -R 755 /var/www/frontend
+
   # Write Caddyfile
   - |
     cat > /opt/sigacad/Caddyfile << 'CADDYEOF'

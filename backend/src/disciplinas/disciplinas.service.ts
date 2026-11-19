@@ -40,4 +40,20 @@ export class DisciplinasService {
     }
     return disciplina;
   }
+
+  async getAlunos(disciplinaId: string) {
+    const matriculas = await this.matriculasRepository.find({
+      where: { disciplinaId },
+      relations: ['aluno', 'notas'],
+    });
+
+    return matriculas.map((m) => ({
+      alunoId: m.aluno.id,
+      nomeExibicao: m.aluno.nomeExibicao,
+      matriculaId: m.id,
+      nota1: m.notas?.[0]?.nota1,
+      nota2: m.notas?.[0]?.nota2,
+      notaFinal: m.notas?.[0]?.notaFinal,
+    }));
+  }
 }

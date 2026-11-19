@@ -14,7 +14,7 @@ async function seed() {
   const dataSource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 5432,
+    port: parseInt(process.env.DB_PORT || '5432'),
     username: process.env.DB_USER || 'sigacad',
     password: process.env.DB_PASSWORD || 'sigacad',
     database: process.env.DB_NAME || 'sigacad',
@@ -158,7 +158,6 @@ async function seed() {
     const recado = recadoRepo.create({
       conteudo: r.conteudo,
       autorId: r.autor.id,
-      disciplinaId: null,
     });
     await recadoRepo.save(recado);
   }

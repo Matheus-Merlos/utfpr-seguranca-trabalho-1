@@ -14,4 +14,9 @@ export class DisciplinasController {
   async findOne(@Param('id') id: string) {
     return this.disciplinasService.findOne(id);
   }
+
+  @Get(':id/alunos')
+  async getAlunos(@Param('id') id: string) {
+    return this.disciplinasService.getAlunos(id);
+  }
 }

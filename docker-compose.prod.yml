@@ -1,0 +1,29 @@
+services:
+  api:
+    image: ${DOCKERHUB_USERNAME:-sigacad}/sigacad-api:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-sigacad}
+      - DB_PASSWORD=${DB_PASSWORD:-sigacad}
+      - DB_NAME=${DB_NAME:-sigacad}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER:-sigacad}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-sigacad}
+      - POSTGRES_DB=${DB_NAME:-sigacad}
+
+volumes:
+  pgdata:

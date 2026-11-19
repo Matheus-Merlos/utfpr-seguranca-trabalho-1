@@ -1,30 +1,33 @@
 # SIGAcad Infrastructure
 
-Terraform para provisionar a infraestrutura do SIGAcad na AWS e DigitalOcean.
+Terraform para provisionar a infraestrutura do SIGAcad na DigitalOcean.
 
 ## Arquitetura
 
 ```
-                    CloudFront (CDN + Basic Auth)
-                    ┌─────────────────────────────┐
-                    │  /*  → S3 (frontend)        │
-                    │  /api/* → DO Droplet (API)  │
-                    └─────────────────────────────┘
-                              │
-            ┌─────────────────┼─────────────────┐
-            ▼                                   ▼
-     ┌─────────────┐                    ┌─────────────┐
-     │   S3 (OAC)  │                    │   Droplet   │
-     │   Frontend  │                    │ Caddy + API │
-     └─────────────┘                    └─────────────┘
+                        Internet
+                            │
+                            ▼
+              ┌─────────────────────────────────────────┐
+              │          DigitalOcean VPC               │
+              │          (10.10.10.0/24)                │
+              │                                         │
+              │    Droplet (sigacad.com.br)            │
+              │    ├─ Caddy (443/80) → HTTPS           │
+              │    │  ├─ /api/* → localhost:3000       │
+              │    │  └─ /* → /var/www/frontend        │
+              │    │                                    │
+              │    └─ Docker Compose                   │
+              │       ├─ api (NestJS)                  │
+              │       └─ postgres                      │
+              └─────────────────────────────────────────┘
 ```
 
 ## Pré-requisitos
 
 1. Terraform >= 1.0
-2. Conta AWS com credenciais configuradas
-3. Token da DigitalOcean
-4. Domínio configurado (nameservers serão fornecidos após apply)
+2. Token da DigitalOcean
+3. Domínio sigacad.com.br (DNS gerenciado no registro.br)
 
 ## Uso
 
@@ -34,11 +37,9 @@ Terraform para provisionar a infraestrutura do SIGAcad na AWS e DigitalOcean.
    ```
 
 2. Edite `terraform.tfvars` com seus valores:
-   - `domain`: seu domínio
+   - `domain`: sigacad.com.br (ou seu domínio)
    - `do_token`: token da DigitalOcean
-   - `owner_ip`: seu IP para acesso SSH
-   - `origin_secret`: segredo aleatório
-   - `basic_auth_user/pass`: credenciais do basic auth
+   - `owner_ip`: seu IP para acesso SSH (ex: 203.0.113.50/32)
    - `ssh_public_key`: sua chave SSH pública
 
 3. Inicialize e planeje:
@@ -47,44 +48,57 @@ Terraform para provisionar a infraestrutura do SIGAcad na AWS e DigitalOcean.
    terraform plan
    ```
 
-4. **Aplique apenas com autorização do professor:**
+4. **Aplique apenas com autorização:**
    ```bash
    terraform apply
    ```
 
-5. Configure os nameservers do Route53 no seu registrar de domínio.
+5. Configure os registros DNS no registro.br:
+   ```
+   Tipo    Nome                    Valor
+   A       sigacad.com.br          <IP do droplet>
+   CNAME   www.sigacad.com.br      sigacad.com.br
+   ```
 
 ## Outputs
 
-- `cloudfront_url`: URL principal do site
-- `droplet_ip`: IP do servidor para SSH
-- `nameservers`: nameservers para configurar no registrar
+- `droplet_ip`: IP do servidor
+- `app_url`: URL da aplicação (https://sigacad.com.br)
+- `dns_instructions`: instruções para DNS
+- `deploy_instructions`: instruções para deploy
 
 ## Deploy da aplicação
 
-Após `terraform apply`:
+Após `terraform apply` e configuração do DNS:
 
-1. SSH no droplet:
-   ```bash
-   ssh root@$(terraform output -raw droplet_ip)
-   ```
+### Frontend
 
-2. Clone o repo e configure:
-   ```bash
-   cd /opt/sigacad
-   git clone <repo-url> .
-   cp .env.example .env
-   # edite .env com as credenciais do banco
-   ```
+```bash
+cd frontend
+npm run build
+scp -r dist/* root@<DROPLET_IP>:/var/www/frontend/
+```
 
-3. Deploy:
-   ```bash
-   ./deploy.sh
-   ```
+### Backend
+
+```bash
+scp docker-compose.yml root@<DROPLET_IP>:/opt/sigacad/
+ssh root@<DROPLET_IP> 'cd /opt/sigacad && cp .env.example .env && ./deploy.sh'
+```
+
+Ou clone o repositório diretamente no servidor:
+
+```bash
+ssh root@<DROPLET_IP>
+cd /opt/sigacad
+git clone <repo-url> .
+cp .env.example .env
+# edite .env com as credenciais
+./deploy.sh
+```
 
 ## Custos estimados
 
-- **AWS**: ~$1-2/mês (S3, CloudFront, Route53)
 - **DigitalOcean**: ~$6/mês (Droplet s-1vcpu-1gb)
 
 Desligue os recursos após a auditoria para evitar custos.
