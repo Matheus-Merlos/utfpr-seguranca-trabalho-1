@@ -17,8 +17,8 @@ export class AuthController {
 
     res.cookie('token', token, {
       httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
     });
 
     return { message: 'Login realizado com sucesso', user };
@@ -29,8 +29,8 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) res: Response) {
     res.cookie('token', '', {
       httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
       expires: new Date(0),
     });
 
