@@ -1,0 +1,69 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose
+  - curl
+  - git
+
+runcmd:
+  # Enable Docker
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Install Caddy
+  - curl -fsSL "https://caddyserver.com/api/download?os=linux&arch=amd64" -o /usr/bin/caddy
+  - chmod +x /usr/bin/caddy
+
+  # Create app directory
+  - mkdir -p /opt/sigacad
+
+  # Write Caddyfile
+  - |
+    cat > /opt/sigacad/Caddyfile << 'CADDYEOF'
+    ${caddyfile}
+    CADDYEOF
+
+  # Create Caddy systemd service
+  - |
+    cat > /etc/systemd/system/caddy.service << 'EOF'
+    [Unit]
+    Description=Caddy
+    After=network.target
+
+    [Service]
+    User=root
+    ExecStart=/usr/bin/caddy run --config /opt/sigacad/Caddyfile
+    ExecReload=/usr/bin/caddy reload --config /opt/sigacad/Caddyfile
+    Restart=on-failure
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+  # Enable Caddy (will start after app is deployed)
+  - systemctl daemon-reload
+  - systemctl enable caddy
+
+  # Create deploy script
+  - |
+    cat > /opt/sigacad/deploy.sh << 'EOF'
+    #!/bin/bash
+    cd /opt/sigacad
+    docker-compose pull
+    docker-compose up -d
+    systemctl restart caddy
+    EOF
+  - chmod +x /opt/sigacad/deploy.sh
+
+write_files:
+  - path: /opt/sigacad/.env.example
+    content: |
+      DB_HOST=db
+      DB_PORT=5432
+      DB_USER=sigacad
+      DB_PASSWORD=sigacad
+      DB_NAME=sigacad

@@ -9,11 +9,14 @@ export class Nota {
   @Column()
   matriculaId: string;
 
-  @Column()
-  tipo: string;
+  @Column('decimal', { precision: 4, scale: 2, nullable: true })
+  nota1: number;
 
-  @Column('decimal', { precision: 4, scale: 2 })
-  valor: number;
+  @Column('decimal', { precision: 4, scale: 2, nullable: true })
+  nota2: number;
+
+  @Column('decimal', { precision: 4, scale: 2, nullable: true })
+  notaFinal: number;
 
   @ManyToOne(() => Matricula, (matricula) => matricula.notas)
   @JoinColumn({ name: 'matriculaId' })

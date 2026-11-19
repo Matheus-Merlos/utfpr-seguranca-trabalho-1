@@ -130,15 +130,17 @@ async function seed() {
       await matriculaRepo.save(matricula);
       matriculas.push(matricula);
 
-      const tipos = ['P1', 'P2', 'Trabalho'];
-      for (const tipo of tipos) {
-        const nota = notaRepo.create({
-          matriculaId: matricula.id,
-          tipo,
-          valor: Math.round((Math.random() * 5 + 5) * 10) / 10,
-        });
-        await notaRepo.save(nota);
-      }
+      const nota1 = Math.round((Math.random() * 5 + 5) * 10) / 10;
+      const nota2 = Math.round((Math.random() * 5 + 5) * 10) / 10;
+      const notaFinal = Math.round((nota1 + nota2) / 2 * 10) / 10;
+
+      const nota = notaRepo.create({
+        matriculaId: matricula.id,
+        nota1,
+        nota2,
+        notaFinal,
+      });
+      await notaRepo.save(nota);
     }
   }
 

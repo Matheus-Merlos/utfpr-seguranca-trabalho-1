@@ -4,6 +4,10 @@
   import RecuperarSenha from './routes/RecuperarSenha.svelte';
   import ResetarSenha from './routes/ResetarSenha.svelte';
   import Perfil from './routes/Perfil.svelte';
+  import Dashboard from '$lib/pages/Dashboard.svelte';
+  import Busca from '$lib/pages/Busca.svelte';
+  import Boletim from '$lib/pages/Boletim.svelte';
+  import Mural from '$lib/pages/Mural.svelte';
 
   let route = $state(window.location.hash.slice(1) || '/');
   let user = $derived($auth.user);
@@ -35,7 +39,9 @@
     <h1><a href="#/">SIGAcad</a></h1>
     <nav>
       {#if user}
-        <span>Olá, {user.nomeExibicao}</span>
+        <a href="#/dashboard">Dashboard</a>
+        <a href="#/busca">Disciplinas</a>
+        <a href="#/mural">Mural</a>
         <a href="#/perfil">Perfil</a>
         <button onclick={handleLogout}>Sair</button>
       {:else if !loading}
@@ -59,12 +65,33 @@
       {:else}
         <p>Você precisa estar logado. <a href="#/login">Entrar</a></p>
       {/if}
+    {:else if route === '/dashboard'}
+      {#if user}
+        <Dashboard />
+      {:else}
+        <p>Você precisa estar logado. <a href="#/login">Entrar</a></p>
+      {/if}
+    {:else if route.startsWith('/busca')}
+      <Busca />
+    {:else if route === '/boletim'}
+      {#if user}
+        <Boletim />
+      {:else}
+        <p>Você precisa estar logado. <a href="#/login">Entrar</a></p>
+      {/if}
+    {:else if route === '/mural'}
+      {#if user}
+        <Mural />
+      {:else}
+        <p>Você precisa estar logado. <a href="#/login">Entrar</a></p>
+      {/if}
     {:else}
       <div class="home">
         <h2>Bem-vindo ao SIGAcad</h2>
         <p>Sistema de Gestão Acadêmica</p>
         {#if user}
           <p>Você está logado como <strong>{user.nomeExibicao}</strong> ({user.role})</p>
+          <p><a href="#/dashboard">Ir para o Dashboard</a></p>
         {:else}
           <p><a href="#/login">Faça login</a> para continuar</p>
         {/if}

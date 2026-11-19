@@ -4,6 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { DisciplinasModule } from './disciplinas/disciplinas.module';
+import { BoletimModule } from './boletim/boletim.module';
+import { NotasModule } from './notas/notas.module';
+import { MuralModule } from './mural/mural.module';
 
 @Module({
   imports: [
@@ -19,6 +23,10 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     }),
     AuthModule,
     UsuariosModule,
+    DisciplinasModule,
+    BoletimModule,
+    NotasModule,
+    MuralModule,
   ],
   controllers: [AppController],
   providers: [AppService],
