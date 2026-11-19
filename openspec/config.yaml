@@ -20,14 +20,10 @@ context: |
   - backend/: NestJS + TypeScript, TypeORM, PostgreSQL. Prefixo global /api.
   - frontend/: Svelte 5 + Vite, SPA estática (build sobe para S3).
   - docker-compose.yml na raiz: postgres + api + front, para dev e reteste local.
-  - infra/: Terraform. AWS (Route53, S3 privado com OAC, CloudFront, ACM em
-    us-east-1) + DigitalOcean (droplet em VPC própria, firewall).
-    CloudFront: comportamento padrão -> S3 (fallback 403/404 -> /index.html);
-    /api/* -> origem api-origin.<dominio> com CachingDisabled e
-    AllViewerExceptHostHeader. CloudFront Function de basic auth em viewer-request
-    nos dois comportamentos. CloudFront envia header X-Origin-Secret; o Caddy da VM
-    recusa requisições sem ele. Firewall da VM: 80/443 abertos, SSH só do IP do dono.
-    NÃO usar AWS WAF (bloquearia os payloads do laboratório).
+    - infra/: Terraform na DigitalOcean: um droplet em VPC própria, firewall
+    (80/443 abertos, SSH só do IP do dono) e DNS. No droplet, Caddy com HTTPS
+    automático serve o build estático do frontend e faz proxy de /api para o
+    backend.
 
   ## Catálogo de falhas plantadas (gabarito)
   Cada change deve dizer quais VULN implementa. Implementar exatamente assim.
