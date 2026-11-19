@@ -87,7 +87,7 @@ jobs:
             cd /opt/sigacad
             docker pull ${{ env.API_IMAGE }}:latest
             docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec -T api npm run seed || true
+            docker compose -f docker-compose.prod.yml exec -T api npm run seed:prod || true
             systemctl restart caddy
           EOF
         env:
