@@ -79,6 +79,7 @@ jobs:
 
       - name: Deploy frontend via SCP
         run: |
+          ssh root@${{ secrets.DROPLET_IP }} 'mkdir -p /var/www/frontend'
           scp -r frontend-dist/* root@${{ secrets.DROPLET_IP }}:/var/www/frontend/
 
       - name: Deploy backend via SSH
