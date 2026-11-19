@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { DisciplinasService } from './disciplinas.service';
 
-@Controller('api/disciplinas')
+@Controller('disciplinas')
 export class DisciplinasController {
   constructor(private readonly disciplinasService: DisciplinasService) {}
 

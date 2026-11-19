@@ -3,7 +3,7 @@ import { NotasService } from './notas.service';
 import { AtualizarNotaDto } from './dto/atualizar-nota.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('api/notas')
+@Controller('notas')
 export class NotasController {
   constructor(private readonly notasService: NotasService) {}
 

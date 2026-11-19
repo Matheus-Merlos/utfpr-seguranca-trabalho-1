@@ -3,7 +3,7 @@ import { MuralService } from './mural.service';
 import { CriarRecadoDto } from './dto/criar-recado.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('api/mural')
+@Controller('mural')
 export class MuralController {
   constructor(private readonly muralService: MuralService) {}
 

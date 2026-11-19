@@ -12,8 +12,8 @@
     const q = params.get('q');
     if (q) {
       termo = q;
-      executarBusca();
     }
+    executarBusca();
   });
 
   async function executarBusca() {
@@ -49,6 +49,8 @@
 
   {#if buscado}
     <h3>Resultados para: {@html buscado}</h3>
+  {:else if resultados.length > 0}
+    <h3>Todas as disciplinas</h3>
   {/if}
 
   {#if loading}
