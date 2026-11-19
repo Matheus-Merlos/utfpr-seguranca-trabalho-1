@@ -2,12 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Disciplina } from '../entities/disciplina.entity';
+import { Matricula } from '../entities/matricula.entity';
 
 @Injectable()
 export class DisciplinasService {
   constructor(
     @InjectRepository(Disciplina)
     private disciplinasRepository: Repository<Disciplina>,
+    @InjectRepository(Matricula)
+    private matriculasRepository: Repository<Matricula>,
     private dataSource: DataSource,
   ) {}
 

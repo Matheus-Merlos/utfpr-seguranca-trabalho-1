@@ -1,5 +1,7 @@
 <script lang="ts">
   import { getRecados, criarRecado } from '$lib/api/mural';
+  import { Card, CardContent, Button, Avatar, Badge, Skeleton, EmptyState, ErrorState } from '$lib/components/ui';
+  import { MessageSquare, Send } from 'lucide-svelte';
 
   let recados = $state<any[]>([]);
   let novoRecado = $state('');
@@ -42,107 +44,93 @@
   }
 </script>
 
-<div class="mural">
-  <h2>Mural de Recados</h2>
+<div class="space-y-6 max-w-2xl">
+  <div>
+    <h1 class="text-2xl font-bold">Mural de Recados</h1>
+    <p class="text-muted-foreground">Compartilhe avisos e informações</p>
+  </div>
 
-  <form onsubmit={enviarRecado} class="novo-recado">
-    <textarea
-      bind:value={novoRecado}
-      placeholder="Escreva um recado..."
-      rows="3"
-    ></textarea>
-    <button type="submit" disabled={enviando}>
-      {enviando ? 'Enviando...' : 'Publicar'}
-    </button>
-  </form>
-
-  {#if loading}
-    <p>Carregando...</p>
-  {:else if error}
-    <p class="error">{error}</p>
-  {:else if recados.length === 0}
-    <p>Nenhum recado publicado.</p>
-  {:else}
-    <div class="lista-recados">
-      {#each recados as recado}
-        <div class="recado">
-          <div class="recado-header">
-            <span class="autor">{@html recado.autor.nomeExibicao}</span>
-            <span class="data">{formatarData(recado.dataHora)}</span>
-          </div>
-          <div class="recado-conteudo">{@html recado.conteudo}</div>
-          {#if recado.disciplina}
-            <span class="tag">{recado.disciplina.nome}</span>
-          {/if}
+  <!-- New Message Form -->
+  <Card>
+    <CardContent class="p-4">
+      <form onsubmit={enviarRecado} class="space-y-3">
+        <textarea
+          bind:value={novoRecado}
+          placeholder="Escreva um recado..."
+          rows="3"
+          class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+        ></textarea>
+        <div class="flex justify-end">
+          <Button type="submit" disabled={enviando}>
+            {#if enviando}
+              Enviando...
+            {:else}
+              <Send class="h-4 w-4 mr-2" />
+              Publicar
+            {/if}
+          </Button>
         </div>
+      </form>
+    </CardContent>
+  </Card>
+
+  <!-- Messages List -->
+  {#if loading}
+    <div class="space-y-4">
+      {#each [1, 2, 3] as _}
+        <Card>
+          <CardContent class="p-4">
+            <div class="flex gap-3">
+              <Skeleton class="h-10 w-10 rounded-full" />
+              <div class="flex-1 space-y-2">
+                <div class="flex items-center justify-between">
+                  <Skeleton class="h-4 w-32" />
+                  <Skeleton class="h-3 w-24" />
+                </div>
+                <Skeleton class="h-16 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      {/each}
+    </div>
+  {:else if error}
+    <ErrorState
+      title="Erro ao carregar"
+      description={error}
+      onRetry={carregarRecados}
+    />
+  {:else if recados.length === 0}
+    <EmptyState
+      icon={MessageSquare}
+      title="Nenhum recado"
+      description="Seja o primeiro a publicar um recado!"
+    />
+  {:else}
+    <div class="space-y-4">
+      {#each recados as recado}
+        <Card>
+          <CardContent class="p-4">
+            <div class="flex gap-3">
+              <Avatar fallback={recado.autor.nomeExibicao} size="md" />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="font-semibold text-primary truncate">{@html recado.autor.nomeExibicao}</span>
+                  <span class="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatarData(recado.dataHora)}
+                  </span>
+                </div>
+                <div class="text-sm leading-relaxed">{@html recado.conteudo}</div>
+                {#if recado.disciplina}
+                  <Badge variant="secondary" class="mt-3">
+                    {recado.disciplina.nome}
+                  </Badge>
+                {/if}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       {/each}
     </div>
   {/if}
 </div>
-
-<style>
-  .mural {
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  .novo-recado {
-    margin-bottom: 2rem;
-  }
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-  }
-  .novo-recado button {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #1a365d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .novo-recado button:disabled {
-    opacity: 0.6;
-  }
-  .lista-recados {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .recado {
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-  }
-  .recado-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-  .autor {
-    font-weight: bold;
-    color: #1a365d;
-  }
-  .data {
-    color: #666;
-    font-size: 0.85rem;
-  }
-  .recado-conteudo {
-    line-height: 1.5;
-  }
-  .tag {
-    display: inline-block;
-    margin-top: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    background: #e2e8f0;
-    border-radius: 4px;
-    font-size: 0.8rem;
-  }
-  .error {
-    color: red;
-  }
-</style>

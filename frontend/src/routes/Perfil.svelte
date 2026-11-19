@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { auth, checkAuth, logout } from '$lib/stores/auth';
+  import { auth, checkAuth } from '$lib/stores/auth';
+  import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Input, Label, Button, Badge, Avatar } from '$lib/components/ui';
+  import { AlertCircle, CheckCircle, User } from 'lucide-svelte';
 
   let nomeExibicao = $state('');
   let email = $state('');
@@ -44,95 +46,89 @@
       loading = false;
     }
   }
-
-  async function handleLogout() {
-    await logout();
-    window.location.href = '/login';
-  }
 </script>
 
-<main>
-  <h1>Meu Perfil</h1>
+<div class="space-y-6 max-w-xl">
+  <div>
+    <h1 class="text-2xl font-bold">Meu Perfil</h1>
+    <p class="text-muted-foreground">Gerencie suas informações pessoais</p>
+  </div>
 
   {#if user}
-    <p>Olá, <strong>{user.nomeExibicao}</strong> ({user.role})</p>
+    <!-- Profile Header -->
+    <Card>
+      <CardContent class="p-6">
+        <div class="flex items-center gap-4">
+          <Avatar fallback={user.nomeExibicao} size="lg" />
+          <div>
+            <h2 class="text-lg font-semibold">{user.nomeExibicao}</h2>
+            <div class="flex items-center gap-2 mt-1">
+              <Badge variant="secondary">{user.role}</Badge>
+              <span class="text-sm text-muted-foreground">@{user.username}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
 
-    <form onsubmit={handleSubmit}>
-      {#if error}
-        <p class="error">{error}</p>
-      {/if}
-      {#if message}
-        <p class="success">{message}</p>
-      {/if}
+    <!-- Edit Form -->
+    <Card>
+      <CardHeader>
+        <CardTitle>Editar Informações</CardTitle>
+        <CardDescription>Atualize seu nome de exibição e email</CardDescription>
+      </CardHeader>
 
-      <label>
-        Nome de Exibição
-        <input type="text" bind:value={nomeExibicao} required />
-      </label>
+      <form onsubmit={handleSubmit}>
+        <CardContent class="space-y-4">
+          {#if error}
+            <div class="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle class="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          {/if}
 
-      <label>
-        Email
-        <input type="email" bind:value={email} required />
-      </label>
+          {#if message}
+            <div class="flex items-center gap-2 rounded-lg bg-success/10 p-3 text-sm text-success">
+              <CheckCircle class="h-4 w-4 shrink-0" />
+              <span>{message}</span>
+            </div>
+          {/if}
 
-      <button type="submit" disabled={loading}>
-        {loading ? 'Salvando...' : 'Salvar'}
-      </button>
-    </form>
+          <div class="space-y-2">
+            <Label for="nomeExibicao">Nome de Exibição</Label>
+            <Input
+              id="nomeExibicao"
+              type="text"
+              placeholder="Como você quer ser chamado"
+              bind:value={nomeExibicao}
+              disabled={loading}
+            />
+          </div>
 
-    <button class="logout" onclick={handleLogout}>Sair</button>
+          <div class="space-y-2">
+            <Label for="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu.email@exemplo.com"
+              bind:value={email}
+              disabled={loading}
+            />
+          </div>
+        </CardContent>
+
+        <CardFooter>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Alterações'}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   {:else}
-    <p>Carregando...</p>
+    <Card>
+      <CardContent class="p-6">
+        <p class="text-muted-foreground">Carregando...</p>
+      </CardContent>
+    </Card>
   {/if}
-</main>
-
-<style>
-  main {
-    max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
-  }
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  input {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  button {
-    padding: 0.75rem;
-    background: #1a365d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:disabled {
-    opacity: 0.6;
-  }
-  .logout {
-    margin-top: 2rem;
-    background: #c53030;
-  }
-  .error {
-    color: red;
-    padding: 0.5rem;
-    background: #fee;
-    border-radius: 4px;
-  }
-  .success {
-    color: green;
-    padding: 0.5rem;
-    background: #efe;
-    border-radius: 4px;
-  }
-</style>
+</div>

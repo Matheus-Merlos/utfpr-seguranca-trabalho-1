@@ -36,4 +36,18 @@ export class UsuariosService {
 
     return this.findById(id);
   }
+
+  async findAll(): Promise<Usuario[]> {
+    return this.usuariosRepository.find({
+      select: ['id', 'username', 'email', 'nomeExibicao', 'role'],
+    });
+  }
+
+  async remover(id: string): Promise<void> {
+    const usuario = await this.usuariosRepository.findOne({ where: { id } });
+    if (!usuario) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    await this.usuariosRepository.delete(id);
+  }
 }
