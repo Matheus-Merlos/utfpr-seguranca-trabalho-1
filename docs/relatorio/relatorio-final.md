@@ -203,7 +203,7 @@ Ordem de aplicação sugerida: Patch 3, Patch 1, Patch 2, Patch 4, depois 5, 6 e
 
 ## 9. Limitações
 
-- Não foi feita exploração ativa, varredura ZAP nem histórico de proxy. A confirmação é o código. A evidência de tela pedida pelo template ainda cabe ao grupo, no laboratório.
+- Não foi feita exploração ativa, varredura ZAP nem histórico de proxy. A confirmação é o código. Há print de cada trecho em `docs/achados/ACH-*/evidencias/`. A evidência da aplicação em execução, pedida pelo template, continua com o grupo.
 - Não foi medido se a porta 5432 aceita conexão além de localhost. A nota 9.8 do ACH-06 depende disso.
 - Não foi feita análise de CVEs das dependências.
 - Não foi verificado o comportamento do driver diante de mais de um comando na mesma string. A nota de disponibilidade do ACH-01 considera que a classe da falha permite escrita SQL, o que o `UPDATE` concatenado já demonstra por si.

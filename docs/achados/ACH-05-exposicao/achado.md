@@ -36,6 +36,13 @@ O hash é MD5 sem sal (`auth.service.ts` e `database/seed.ts`). Não é um segre
 - Rede até a API, para a lista de disciplinas e para um erro de consulta.
 - Sessão qualquer, para o mural.
 
+## Evidências
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `evidencias/ev01-hash-na-entidade.png` | Coluna `senha` sem `select: false`, e a listagem que carrega a relação `professor` |
+| `evidencias/ev02-erro-com-sql.png` | Filtro de erro inclui `stack` e a propriedade `query` |
+
 ## Confirmação
 
 1. Chamar `GET /api/disciplinas` sem `busca` e sem cookie.

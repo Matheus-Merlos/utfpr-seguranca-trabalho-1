@@ -67,11 +67,9 @@ A ficha não traz um token pronto nem um JWT assinado.
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `backend/src/auth/auth.service.ts` | Token derivado de e-mail e data; data descartada na troca; token no log |
-| `backend/src/auth/auth.module.ts` | Segredo literal, sem `expiresIn` |
-| `backend/src/auth/jwt.strategy.ts` | Mesmo segredo e `ignoreExpiration: true` |
-| `backend/src/auth/auth.controller.ts` | Flags do cookie |
-| `evidencias/` | Reservado para o laboratório (cookie no navegador, resposta dos dois fluxos) |
+| `evidencias/ev01-reset-token.png` | Token derivado de e-mail e data; a data não entra na verificação |
+| `evidencias/ev02-jwt-segredo.png` | Segredo literal na emissão e na estratégia, com `ignoreExpiration: true` |
+| `evidencias/ev03-cookie-flags.png` | Cookie `token` com `httpOnly: false` e `secure: false` |
 
 ## Impacto
 

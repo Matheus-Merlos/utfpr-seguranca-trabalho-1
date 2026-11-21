@@ -47,13 +47,11 @@ Isso não é defeito de tela. A política de acesso não existe no componente qu
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `usuarios.controller.ts` | Lista, altera e remove sem papel |
-| `atualizar-perfil.dto.ts` e `usuarios.service.ts` | `role` no DTO e `Object.assign` |
-| `boletim.controller.ts` | `:id` sem comparação com o sujeito do JWT |
-| `notas.controller.ts` | Atualização sem checar o professor da turma |
-| `disciplinas.controller.ts` | Leitura de alunos e notas sem guard |
-| `roles.guard.ts` | Guard implementado e não aplicado |
-| `evidencias/` | Reservado para o laboratório |
+| `evidencias/ev01-usuarios-sem-papel.png` | Lista, alteração e remoção só com `JwtAuthGuard` |
+| `evidencias/ev02-atribuicao-em-massa.png` | Campo `role` no DTO e `Object.assign` do corpo |
+| `evidencias/ev03-boletim-idor.png` | Boletim pelo `:id`, sem comparar com o sujeito do token |
+| `evidencias/ev04-notas-sem-autorizacao.png` | Atualização de nota sem checar o professor da turma |
+| `evidencias/ev05-disciplinas-sem-auth.png` | Lista e alunos da disciplina sem guard |
 
 ## Impacto
 

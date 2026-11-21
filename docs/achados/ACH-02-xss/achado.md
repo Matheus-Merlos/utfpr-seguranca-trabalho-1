@@ -45,10 +45,9 @@ O cookie de sessão é gravado com `httpOnly: false` (`auth.controller.ts`). Scr
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `frontend/src/lib/pages/Mural.svelte` | `{@html}` em conteúdo e nome do autor |
-| `frontend/src/lib/pages/Busca.svelte` | `{@html}` no termo exibido |
-| `backend/src/auth/auth.controller.ts` | Cookie legível por script |
-| `evidencias/` | Reservado para captura do laboratório |
+| `evidencias/ev01-mural-html.png` | `Mural.svelte`, linhas 118 e 123: `{@html}` no nome e no conteúdo |
+| `evidencias/ev02-busca-html.png` | `Busca.svelte`: termo copiado da tela e renderizado com `{@html}` |
+| `docs/achados/ACH-04-auth-sessao/evidencias/ev03-cookie-flags.png` | Cookie sem `HttpOnly`, legível por script da mesma origem |
 
 ## Impacto
 

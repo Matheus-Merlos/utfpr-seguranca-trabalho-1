@@ -33,6 +33,13 @@ Não há cabeçalho de endurecimento (Helmet ou equivalente) nem limite de taxa.
 - Compose do laboratório em execução, para o item do banco.
 - Para medir o alcance real da porta 5432: observar o bind e o firewall do host. Sem essa observação, o relatório não afirma que o banco está na internet.
 
+## Evidências
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `evidencias/ev01-banco-porta-senha.png` | Compose publica `5432` e usa a senha padrão `sigacad` |
+| `evidencias/ev02-cors-reflexivo.png` | CORS reflete qualquer `Origin` com credenciais |
+
 ## Confirmação
 
 1. Ler a publicação de porta e a senha padrão no compose.

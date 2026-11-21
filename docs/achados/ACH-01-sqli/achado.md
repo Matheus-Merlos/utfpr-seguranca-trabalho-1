@@ -50,10 +50,12 @@ A evidência desta entrega é a revisão do código (white box), não uma explor
 
 | Arquivo | Descrição |
 |---------|-----------|
-| Código `auth.service.ts` (consultas de login e `UPDATE`) | Interpolação direta de `username` e `email` |
-| Código `disciplinas.service.ts` (`buscar`) | Interpolação direta de `termo` |
-| Código `all-exceptions.filter.ts` | Resposta HTTP inclui a SQL que falhou |
-| `evidencias/` | Reservado para captura do laboratório (tela, request e response). Ainda não anexada |
+| `evidencias/ev01-login-sql.png` | `auth.service.ts`, linhas 21–28: `username` concatenado nas duas consultas do login |
+| `evidencias/ev02-reset-sql.png` | `auth.service.ts`, linhas 77–79: e-mail concatenado no `UPDATE` |
+| `evidencias/ev03-busca-sql.png` | `disciplinas.service.ts`, linhas 24–29: `termo` concatenado no `LIKE` |
+| `docs/achados/ACH-05-exposicao/evidencias/ev02-erro-com-sql.png` | Filtro que devolve a SQL no erro |
+
+Prints do código-fonte. Captura de tela da aplicação em execução e do proxy continuam pendentes.
 
 ## Impacto
 
