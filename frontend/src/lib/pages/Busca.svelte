@@ -59,7 +59,7 @@
 
   <!-- Results Header -->
   {#if buscado}
-    <h2 class="text-lg font-semibold">Resultados para: {@html buscado}</h2>
+    <h2 class="text-lg font-semibold">Resultados para: {buscado}</h2>
   {:else if resultados.length > 0}
     <h2 class="text-lg font-semibold">Todas as disciplinas</h2>
   {/if}

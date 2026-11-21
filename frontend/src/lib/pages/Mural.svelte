@@ -115,12 +115,12 @@
               <Avatar fallback={recado.autor.nomeExibicao} size="md" />
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between gap-2 mb-2">
-                  <span class="font-semibold text-primary truncate">{@html recado.autor.nomeExibicao}</span>
+                  <span class="font-semibold text-primary truncate">{recado.autor.nomeExibicao}</span>
                   <span class="text-xs text-muted-foreground whitespace-nowrap">
                     {formatarData(recado.dataHora)}
                   </span>
                 </div>
-                <div class="text-sm leading-relaxed">{@html recado.conteudo}</div>
+                <div class="text-sm leading-relaxed">{recado.conteudo}</div>
                 {#if recado.disciplina}
                   <Badge variant="secondary" class="mt-3">
                     {recado.disciplina.nome}
