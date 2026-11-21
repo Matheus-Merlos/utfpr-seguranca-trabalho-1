@@ -105,7 +105,7 @@ Patch 5 de `docs/correcoes/PATCHES.md`, aplicado na branch `fix/ach-02-xss`. Os 
 <h2 class="text-lg font-semibold">Resultados para: {buscado}</h2>
 ```
 
-**Pull Request:** não aberto.
+**Pull Request:** [#1](https://github.com/Matheus-Merlos/utfpr-seguranca-trabalho-1/pull/1)
 
 ## Reteste
 
@@ -139,7 +139,7 @@ Patch 5 de `docs/correcoes/PATCHES.md`, aplicado na branch `fix/ach-02-xss`. Os 
 - [ ] Screenshots do laboratório
 - [ ] Request e response do proxy
 - [x] Impacto concreto
-- [ ] PR linkado
+- [x] PR linkado
 - [x] Verificação estática da correção (código-fonte, JS compilado e build)
 - [ ] Reteste local no navegador executado
 - [ ] Reteste pós-deploy executado
