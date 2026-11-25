@@ -1,13 +1,14 @@
 import { DataSource } from 'typeorm';
-import { createHash } from 'crypto';
+import { randomBytes } from 'node:crypto';
+import { hashSenha, senhasDemonstracao } from '../auth/senha';
 import { Usuario, Role } from '../entities/usuario.entity';
 import { Disciplina } from '../entities/disciplina.entity';
 import { Matricula } from '../entities/matricula.entity';
 import { Nota } from '../entities/nota.entity';
 import { Recado } from '../entities/recado.entity';
 
-function hashSenha(senha: string): string {
-  return createHash('md5').update(senha).digest('hex');
+function senhaInicial(exemplo: string): Promise<string> {
+  return hashSenha(process.env.NODE_ENV === 'production' ? randomBytes(32).toString('hex') : exemplo);
 }
 
 async function seed() {
@@ -43,7 +44,7 @@ async function seed() {
   const admin = usuarioRepo.create({
     username: 'admin',
     email: 'admin@sigacad.edu.br',
-    senha: hashSenha('admin'),
+    senha: await senhaInicial(senhasDemonstracao.admin),
     nomeExibicao: 'Administrador',
     role: Role.ADMIN,
   });
@@ -60,7 +61,7 @@ async function seed() {
     const prof = usuarioRepo.create({
       username: p.username,
       email: p.email,
-      senha: hashSenha('prof123'),
+      senha: await senhaInicial(senhasDemonstracao.professor),
       nomeExibicao: p.nome,
       role: Role.PROFESSOR,
     });
@@ -83,7 +84,7 @@ async function seed() {
     const aluno = usuarioRepo.create({
       username,
       email: `${username}@aluno.sigacad.edu.br`,
-      senha: hashSenha('aluno123'),
+      senha: await senhaInicial(senhasDemonstracao.aluno),
       nomeExibicao: nome,
       role: Role.ALUNO,
     });

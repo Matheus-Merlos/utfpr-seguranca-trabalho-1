@@ -20,8 +20,17 @@ export class Usuario {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ select: false })
   senha: string;
+
+  @Column({ nullable: true, type: 'varchar', length: 64, unique: true, select: false })
+  resetTokenHash: string | null;
+
+  @Column({ nullable: true, type: 'timestamptz', select: false })
+  resetTokenExpiraEm: Date | null;
+
+  @Column({ default: 0, select: false })
+  versaoSessao: number;
 
   @Column()
   nomeExibicao: string;
