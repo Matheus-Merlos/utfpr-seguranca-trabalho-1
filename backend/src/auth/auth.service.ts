@@ -1,15 +1,19 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { createHash, randomBytes } from 'node:crypto';
-import { MoreThan, Repository } from 'typeorm';
-import { Usuario } from '../entities/usuario.entity';
-import { EmailRecuperacao } from './email-recuperacao';
-import { hashSenha, senhasDemonstracao, verificarSenha } from './senha';
-import { Sessao, sessaoValida } from './sessao';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { createHash, randomBytes } from "node:crypto";
+import { MoreThan, Repository } from "typeorm";
+import { Usuario } from "../entities/usuario.entity";
+import { EmailRecuperacao } from "./email-recuperacao";
+import { hashSenha, senhasDemonstracao, verificarSenha } from "./senha";
+import { Sessao, sessaoValida } from "./sessao";
 
 function digestToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+  return createHash("sha256").update(token).digest("hex");
 }
 
 @Injectable()
@@ -21,26 +25,34 @@ export class AuthService {
   ) {}
 
   private hashSenha(senha: string): string {
-    return createHash('md5').update(senha).digest('hex');
+    return createHash("md5").update(senha).digest("hex");
   }
 
   async login(username: string, senha: string) {
     const conta = await this.usuarios.findOne({
       where: { username },
-      select: ['id', 'username', 'email', 'nomeExibicao', 'role', 'senha', 'versaoSessao'],
+      select: [
+        "id",
+        "username",
+        "email",
+        "nomeExibicao",
+        "role",
+        "senha",
+        "versaoSessao",
+      ],
     });
 
     if (!conta) {
-      throw new UnauthorizedException('Usuário não encontrado');
+      throw new UnauthorizedException("Usuário não encontrado");
     }
 
     const verificada = await verificarSenha(senha, conta.senha);
     const senhaPublica =
-      process.env.NODE_ENV === 'production' &&
+      process.env.NODE_ENV === "production" &&
       Object.values(senhasDemonstracao).includes(senha);
 
     if (!verificada.valida || senhaPublica) {
-      throw new UnauthorizedException('Senha incorreta');
+      throw new UnauthorizedException("Senha incorreta");
     }
 
     if (verificada.novoHash) {
@@ -65,57 +77,57 @@ export class AuthService {
       return;
     }
     if (sessaoValida(sessao)) {
-      await this.usuarios.increment({ id: sessao.sub, versaoSessao: sessao.versao }, 'versaoSessao', 1);
+      await this.usuarios.increment(
+        { id: sessao.sub, versaoSessao: sessao.versao },
+        "versaoSessao",
+        1,
+      );
     }
   }
 
   async recuperarSenha(email: string) {
     this.email.verificarConfiguracao();
-    const token = randomBytes(32).toString('hex');
-    const pedido = await this.usuarios.update({ email }, {
-      resetTokenHash: digestToken(token),
-      resetTokenExpiraEm: new Date(Date.now() + 15 * 60_000),
-    });
+    const token = randomBytes(32).toString("hex");
+    const pedido = await this.usuarios.update(
+      { email },
+      {
+        resetTokenHash: digestToken(token),
+        resetTokenExpiraEm: new Date(Date.now() + 15 * 60_000),
+      },
+    );
     if (pedido.affected === 1) this.email.enviar(email, token);
-    return { message: 'Se o email existir, enviaremos instruções' };
+    return { message: "Se o email existir, enviaremos instruções" };
   }
 
   async resetarSenha(token: string, novaSenha: string) {
     const resetTokenHash = digestToken(token);
-    const invalido = () => new BadRequestException('Código inválido ou expirado');
-    if (!(await this.usuarios.existsBy({ resetTokenHash, resetTokenExpiraEm: MoreThan(new Date()) }))) {
+    const invalido = () =>
+      new BadRequestException("Código inválido ou expirado");
+    if (
+      !(await this.usuarios.existsBy({
+        resetTokenHash,
+        resetTokenExpiraEm: MoreThan(new Date()),
+      }))
+    ) {
       throw invalido();
     }
-<<<<<<< HEAD
 
-    const parts = decoded.split(':');
-    if (parts.length !== 2) {
-      throw new BadRequestException('Token inválido');
-    }
-
-    const [email] = parts;
-    const hash = this.hashSenha(novaSenha);
-
-    const result = await this.dataSource.query(
-      'UPDATE usuarios SET senha = $1 WHERE email = $2 RETURNING id',
-      [hash, email],
-    );
-
-    if (!result || result.length === 0) {
-      throw new BadRequestException('Token inválido');
-    }
-
-=======
     const senha = await hashSenha(novaSenha);
     // O próprio UPDATE verifica a validade e consome o código, mesmo em chamadas simultâneas.
-    const resultado = await this.usuarios.update({ resetTokenHash, resetTokenExpiraEm: MoreThan(new Date()) }, {
-      senha,
-      resetTokenHash: null,
-      resetTokenExpiraEm: null,
-      versaoSessao: () => '"versaoSessao" + 1',
-    });
-    if (!resultado.affected) throw invalido();
->>>>>>> master
-    return { message: 'Senha atualizada com sucesso' };
+    const resultado = await this.usuarios.update(
+      { resetTokenHash, resetTokenExpiraEm: MoreThan(new Date()) },
+      {
+        senha,
+        resetTokenHash: null,
+        resetTokenExpiraEm: null,
+        versaoSessao: () => '"versaoSessao" + 1',
+      },
+    );
+
+    if (!resultado.affected) {
+      throw invalido();
+    }
+
+    return { message: "Senha atualizada com sucesso" };
   }
 }
