@@ -83,6 +83,7 @@
           <Button type="submit" class="w-full" disabled={loading}>
             {loading ? 'Enviando...' : 'Enviar'}
           </Button>
+          <a href="#/resetar-senha" class="text-sm text-primary hover:underline">Já tenho um código</a>
 
           <a href="#/login" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft class="h-4 w-4" />

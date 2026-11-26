@@ -4,6 +4,7 @@
   "description": "SIGAcad - Sistema de Gestão Acadêmica",
   "scripts": {
     "build": "nest build",
+    "test:auth": "npm run build && node --test test/auth.test.cjs",
     "start": "nest start",
     "start:dev": "node_modules/.bin/nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -25,6 +26,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "lodash": "4.17.15",
+    "nodemailer": "^10.6.1",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
@@ -35,7 +37,9 @@
     "@types/cookie-parser": "^1.4.6",
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.11.5",
+    "@types/nodemailer": "^8.0.2",
     "@types/passport-jwt": "^4.0.1",
+    "smtp-server": "^3.21.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
