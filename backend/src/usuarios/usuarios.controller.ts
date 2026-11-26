@@ -4,6 +4,8 @@ import { Request } from 'express';
 import { UsuariosService } from './usuarios.service';
 import { AtualizarPerfilDto } from './dto/atualizar-perfil.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @ApiTags('usuarios')
 @Controller('usuarios')
@@ -25,22 +27,25 @@ export class UsuariosController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Listar todos os usuários' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Listar todos os usuários (somente ADMIN)' })
   async findAll() {
     return this.usuariosService.findAll();
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Atualizar usuário por ID' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Atualizar usuário por ID (somente ADMIN)' })
   async atualizar(@Param('id') id: string, @Body() dto: AtualizarPerfilDto) {
     return this.usuariosService.atualizar(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Remover usuário por ID' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Remover usuário por ID (somente ADMIN)' })
   async remover(@Param('id') id: string) {
     return this.usuariosService.remover(id);
   }

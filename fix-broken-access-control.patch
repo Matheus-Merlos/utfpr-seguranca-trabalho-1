@@ -1,0 +1,234 @@
+diff --git a/backend/src/boletim/boletim.controller.ts b/backend/src/boletim/boletim.controller.ts
+index 4099a9c..e858e7a 100644
+--- a/backend/src/boletim/boletim.controller.ts
++++ b/backend/src/boletim/boletim.controller.ts
+@@ -1,4 +1,5 @@
+-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
++import { Controller, Get, Param, Req, UseGuards, ForbiddenException } from '@nestjs/common';
++import { Request } from 'express';
+ import { BoletimService } from './boletim.service';
+ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+ 
+@@ -8,7 +9,15 @@ export class BoletimController {
+ 
+   @Get(':id/boletim')
+   @UseGuards(JwtAuthGuard)
+-  async getBoletim(@Param('id') id: string) {
++  async getBoletim(@Param('id') id: string, @Req() req: Request) {
++    const user = (req as any).user;
++
++    // Checagem de propriedade (BAC-02 / IDOR): um aluno só pode ver o
++    // próprio boletim. Professores e administradores podem ver os demais.
++    if (user.role === 'ALUNO' && user.sub !== id) {
++      throw new ForbiddenException('Você só pode acessar o seu próprio boletim');
++    }
++
+     return this.boletimService.getBoletim(id);
+   }
+ }
+diff --git a/backend/src/disciplinas/disciplinas.controller.ts b/backend/src/disciplinas/disciplinas.controller.ts
+index 1b28798..7ff08ae 100644
+--- a/backend/src/disciplinas/disciplinas.controller.ts
++++ b/backend/src/disciplinas/disciplinas.controller.ts
+@@ -1,7 +1,13 @@
+-import { Controller, Get, Param, Query } from '@nestjs/common';
++import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+ import { DisciplinasService } from './disciplinas.service';
++import { JwtAuthGuard } from '../auth/jwt-auth.guard';
++import { RolesGuard } from '../auth/roles.guard';
++import { Roles } from '../auth/roles.decorator';
+ 
++// BAC-04: todas as rotas de disciplinas agora exigem autenticação.
++// Antes, qualquer pessoa sem login lia a lista de disciplinas e de alunos.
+ @Controller('disciplinas')
++@UseGuards(JwtAuthGuard)
+ export class DisciplinasController {
+   constructor(private readonly disciplinasService: DisciplinasService) {}
+ 
+@@ -16,7 +22,10 @@ export class DisciplinasController {
+   }
+ 
+   @Get(':id/alunos')
++  @UseGuards(RolesGuard)
++  @Roles('PROFESSOR', 'ADMIN')
+   async getAlunos(@Param('id') id: string) {
++    // Lista de alunos e notas: restrita a PROFESSOR/ADMIN.
+     return this.disciplinasService.getAlunos(id);
+   }
+ }
+diff --git a/backend/src/main.ts b/backend/src/main.ts
+index 5738337..b857d73 100644
+--- a/backend/src/main.ts
++++ b/backend/src/main.ts
+@@ -1,4 +1,5 @@
+ import { NestFactory } from '@nestjs/core';
++import { ValidationPipe } from '@nestjs/common';
+ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+ import * as cookieParser from 'cookie-parser';
+ import { AppModule } from './app.module';
+@@ -10,6 +11,16 @@ async function bootstrap() {
+   app.use(cookieParser());
+   app.setGlobalPrefix('api');
+ 
++  // Bloqueia mass assignment: descarta campos não declarados nos DTOs
++  // (ex.: { "role": "ADMIN" }) e rejeita a requisição se eles vierem.
++  app.useGlobalPipes(
++    new ValidationPipe({
++      whitelist: true,
++      forbidNonWhitelisted: true,
++      transform: true,
++    }),
++  );
++
+   app.enableCors({
+     origin: (origin, callback) => callback(null, origin),
+     credentials: true,
+diff --git a/backend/src/notas/notas.controller.ts b/backend/src/notas/notas.controller.ts
+index 8d030a0..b350d82 100644
+--- a/backend/src/notas/notas.controller.ts
++++ b/backend/src/notas/notas.controller.ts
+@@ -1,15 +1,25 @@
+-import { Controller, Patch, Param, Body, UseGuards } from '@nestjs/common';
++import { Controller, Patch, Param, Body, Req, UseGuards } from '@nestjs/common';
++import { Request } from 'express';
+ import { NotasService } from './notas.service';
+ import { AtualizarNotaDto } from './dto/atualizar-nota.dto';
+ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
++import { RolesGuard } from '../auth/roles.guard';
++import { Roles } from '../auth/roles.decorator';
+ 
+ @Controller('notas')
+ export class NotasController {
+   constructor(private readonly notasService: NotasService) {}
+ 
+   @Patch(':id')
+-  @UseGuards(JwtAuthGuard)
+-  async atualizar(@Param('id') id: string, @Body() dto: AtualizarNotaDto) {
+-    return this.notasService.atualizar(id, dto);
++  @UseGuards(JwtAuthGuard, RolesGuard)
++  @Roles('PROFESSOR', 'ADMIN')
++  async atualizar(
++    @Param('id') id: string,
++    @Body() dto: AtualizarNotaDto,
++    @Req() req: Request,
++  ) {
++    // BAC-01: além de exigir o papel PROFESSOR/ADMIN (acima), o service
++    // confere se o professor leciona a disciplina daquela nota.
++    return this.notasService.atualizar(id, dto, (req as any).user);
+   }
+ }
+diff --git a/backend/src/notas/notas.service.ts b/backend/src/notas/notas.service.ts
+index 4c02f09..0e6a484 100644
+--- a/backend/src/notas/notas.service.ts
++++ b/backend/src/notas/notas.service.ts
+@@ -1,4 +1,4 @@
+-import { Injectable, NotFoundException } from '@nestjs/common';
++import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+ import { InjectRepository } from '@nestjs/typeorm';
+ import { Repository } from 'typeorm';
+ import { Nota } from '../entities/nota.entity';
+@@ -11,12 +11,30 @@ export class NotasService {
+     private notasRepository: Repository<Nota>,
+   ) {}
+ 
+-  async atualizar(id: string, dto: AtualizarNotaDto): Promise<Nota> {
+-    const nota = await this.notasRepository.findOne({ where: { id } });
++  async atualizar(
++    id: string,
++    dto: AtualizarNotaDto,
++    user: { sub: string; role: string },
++  ): Promise<Nota> {
++    const nota = await this.notasRepository.findOne({
++      where: { id },
++      relations: ['matricula', 'matricula.disciplina'],
++    });
+     if (!nota) {
+       throw new NotFoundException('Nota não encontrada');
+     }
+ 
++    // Checagem de propriedade (BAC-01): um professor só altera notas das
++    // disciplinas que ele mesmo leciona. ADMIN pode alterar qualquer nota.
++    if (
++      user.role !== 'ADMIN' &&
++      nota.matricula?.disciplina?.professorId !== user.sub
++    ) {
++      throw new ForbiddenException(
++        'Você só pode alterar notas das disciplinas que leciona',
++      );
++    }
++
+     Object.assign(nota, dto);
+     return this.notasRepository.save(nota);
+   }
+diff --git a/backend/src/usuarios/dto/atualizar-perfil.dto.ts b/backend/src/usuarios/dto/atualizar-perfil.dto.ts
+index 2b269e9..de6bf4c 100644
+--- a/backend/src/usuarios/dto/atualizar-perfil.dto.ts
++++ b/backend/src/usuarios/dto/atualizar-perfil.dto.ts
+@@ -1,12 +1,20 @@
+ import { ApiPropertyOptional } from '@nestjs/swagger';
++import { IsOptional, IsString, IsEmail } from 'class-validator';
+ 
+ export class AtualizarPerfilDto {
+   @ApiPropertyOptional()
++  @IsOptional()
++  @IsString()
+   nomeExibicao?: string;
+ 
+   @ApiPropertyOptional()
++  @IsOptional()
++  @IsEmail()
+   email?: string;
+ 
+-  @ApiPropertyOptional()
+-  role?: string;
++  // IMPORTANTE: o campo `role` foi removido de propósito.
++  // O papel do usuário (ALUNO/PROFESSOR/ADMIN) nunca pode ser definido
++  // pelo próprio usuário via perfil — isso permitia escalonamento de
++  // privilégio (BAC-03). Alterações de papel devem ter um fluxo próprio,
++  // restrito a ADMIN.
+ }
+diff --git a/backend/src/usuarios/usuarios.controller.ts b/backend/src/usuarios/usuarios.controller.ts
+index 0d47621..7991eee 100644
+--- a/backend/src/usuarios/usuarios.controller.ts
++++ b/backend/src/usuarios/usuarios.controller.ts
+@@ -4,6 +4,8 @@ import { Request } from 'express';
+ import { UsuariosService } from './usuarios.service';
+ import { AtualizarPerfilDto } from './dto/atualizar-perfil.dto';
+ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
++import { RolesGuard } from '../auth/roles.guard';
++import { Roles } from '../auth/roles.decorator';
+ 
+ @ApiTags('usuarios')
+ @Controller('usuarios')
+@@ -25,22 +27,25 @@ export class UsuariosController {
+   }
+ 
+   @Get()
+-  @UseGuards(JwtAuthGuard)
+-  @ApiOperation({ summary: 'Listar todos os usuários' })
++  @UseGuards(JwtAuthGuard, RolesGuard)
++  @Roles('ADMIN')
++  @ApiOperation({ summary: 'Listar todos os usuários (somente ADMIN)' })
+   async findAll() {
+     return this.usuariosService.findAll();
+   }
+ 
+   @Patch(':id')
+-  @UseGuards(JwtAuthGuard)
+-  @ApiOperation({ summary: 'Atualizar usuário por ID' })
++  @UseGuards(JwtAuthGuard, RolesGuard)
++  @Roles('ADMIN')
++  @ApiOperation({ summary: 'Atualizar usuário por ID (somente ADMIN)' })
+   async atualizar(@Param('id') id: string, @Body() dto: AtualizarPerfilDto) {
+     return this.usuariosService.atualizar(id, dto);
+   }
+ 
+   @Delete(':id')
+-  @UseGuards(JwtAuthGuard)
+-  @ApiOperation({ summary: 'Remover usuário por ID' })
++  @UseGuards(JwtAuthGuard, RolesGuard)
++  @Roles('ADMIN')
++  @ApiOperation({ summary: 'Remover usuário por ID (somente ADMIN)' })
+   async remover(@Param('id') id: string) {
+     return this.usuariosService.remover(id);
+   }
