@@ -28,7 +28,7 @@ ACH-02-xss/
 
 ## Categorias relacionadas
 
-- **OWASP Top 10:2025:** A03 Injection
+- **OWASP Top 10:2025:** A05 Injection
 - **CWE:** CWE-79 (XSS), CWE-80 (Basic XSS)
 - **WSTG:** WSTG-INPV-01 Testing for Reflected XSS, WSTG-INPV-02 Testing for Stored XSS
 

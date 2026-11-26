@@ -13,9 +13,9 @@
 | **Vetor CVSS 3.1** | AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:N |
 | **Nota CVSS** | 8.7 |
 | **Ativo Afetado** | Página `#/mural`; página `#/busca`; campos `conteudo` e `nomeExibicao` |
-| **Responsável** | Grupo (preencher) |
+| **Responsável** | David Marlon |
 | **Data** | 2026-11-21 |
-| **Status** | Aberto — correção proposta, código do laboratório preservado |
+| **Status** | Correção aplicada na branch `fix/ach-02-xss` — aguardando merge, evidência dinâmica e reteste pós-deploy |
 
 ## Descrição
 
@@ -81,7 +81,7 @@ Referências: [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.
 
 ## Correção Aplicada
 
-Proposta no Patch 5 de `docs/correcoes/PATCHES.md`. Não aplicada ao código do laboratório.
+Patch 5 de `docs/correcoes/PATCHES.md`, aplicado na branch `fix/ach-02-xss`. Os três `{@html}` do frontend viraram interpolação de texto do Svelte, que codifica `<`, `>`, `&` e aspas antes de inserir no DOM. Uma busca por `@html` em `frontend/src` não encontra mais nenhuma ocorrência. O `master` continua vulnerável até o merge, para não atrapalhar a coleta de evidência do grupo.
 
 ### Código antes
 
@@ -105,13 +105,28 @@ Proposta no Patch 5 de `docs/correcoes/PATCHES.md`. Não aplicada ao código do 
 <h2 class="text-lg font-semibold">Resultados para: {buscado}</h2>
 ```
 
-**Pull Request:** não aberto.
+**Pull Request:** [#1](https://github.com/Matheus-Merlos/utfpr-seguranca-trabalho-1/pull/1)
 
 ## Reteste
 
 ### Reteste previsto
 
 - **Critério de aceite:** marcação enviada no recado, no nome de exibição e no termo de busca aparece como texto visível. O navegador não cria elementos a partir desse valor. Login e publicação de texto comum continuam funcionando.
+
+### Verificação estática (executada em 2026-11-21)
+
+| Verificação | Antes (`master`) | Depois (`fix/ach-02-xss`) |
+|-------------|------------------|---------------------------|
+| Ocorrências de `{@html}` em `frontend/src` | 3 | 0 |
+| Chamadas a `$.html()` no JS compilado pelo Svelte 5 — `Mural.svelte` | 2 | 0 |
+| Chamadas a `$.html()` no JS compilado pelo Svelte 5 — `Busca.svelte` | 1 | 0 |
+| `npm ci && npm run build` no frontend (mesmo passo do CI) | ok | ok |
+
+`$.html()` é o helper do Svelte 5 que insere HTML bruto. A interpolação `{valor}` compila para atribuição de texto, sem esse helper.
+
+### Reteste local no navegador
+
+- Pendente: subir o ambiente (`docker compose up -d`), repetir os três fluxos (recado, nome de exibição e link de busca) e anexar os prints "depois" em `evidencias/`.
 
 ### Reteste pós-deploy
 
@@ -124,6 +139,7 @@ Proposta no Patch 5 de `docs/correcoes/PATCHES.md`. Não aplicada ao código do 
 - [ ] Screenshots do laboratório
 - [ ] Request e response do proxy
 - [x] Impacto concreto
-- [ ] PR linkado
-- [ ] Reteste local executado
+- [x] PR linkado
+- [x] Verificação estática da correção (código-fonte, JS compilado e build)
+- [ ] Reteste local no navegador executado
 - [ ] Reteste pós-deploy executado
