@@ -7,8 +7,8 @@
 | Repositório | `utfpr-seguranca-trabalho-1` |
 | Tipo de exame | Revisão de código (white box) sobre aplicação vulnerável por construção, em laboratório acadêmico |
 | Padrão | OWASP Top 10:2025, OWASP Web Security Testing Guide, CVSS 3.1 |
-| Data | 21 de novembro de 2026 |
-| Versão | 1.0 |
+| Data | 21 de novembro de 2026; revisão dos pushes em 25 de novembro de 2026 |
+| Versão | 1.1 |
 | Classificação | Uso acadêmico. O alvo é este repositório, no ambiente do grupo |
 | Responsável | Grupo (preencher nomes e RA) |
 
@@ -22,7 +22,9 @@ Um visitante sem conta alcança comandos SQL pelo login, pela troca de senha e p
 
 Há ainda falhas altas que não dependem das críticas. A API trata “estar logado” como permissão para ler o boletim de outro aluno, alterar nota, apagar usuário e gravar o próprio papel. O mural e a busca inserem texto do usuário como HTML. A lista de disciplinas, sem login, devolve o hash MD5 da senha dos professores. O erro HTTP devolve a consulta SQL e a pilha. O compose publica o PostgreSQL com senha padrão.
 
-Nenhuma correção foi aplicada na árvore que o laboratório executa. Os patches estão propostos para o grupo aplicar e retestar, e então anexar captura de tela, requisição e resposta. Esta versão não contém essa evidência dinâmica.
+O `master` continua com o código vulnerável. Três branches ainda não integradas trazem correção e evidência dos achados que já estavam aqui: XSS (`fix/ach-02-xss`, David Marlon, PR #1), autenticação (`fix/ach-04-auth-sessao`, Paulo Fontana) e controle de acesso (`fix/broken-access-control`, Murilo Ghizzi). Nenhuma delas acrescenta uma falha nova.
+
+O que faltava no quadro veio do scan publicado no `master` por TCallegaro. O ZAP de 21/11, contra a origem HTTPS do grupo, confirma a ausência de CSP, de proteção contra clickjacking, de HSTS e de `X-Content-Type-Options`. Isso entra como ACH-07, severidade média. O histórico do Burp percorre login, boletim, disciplinas e mural: são os mesmos ACH-01, ACH-02, ACH-03 e ACH-04, não uma classe nova.
 
 Prioridade recomendada, antes de qualquer dado que não seja o seed de laboratório:
 
@@ -42,9 +44,8 @@ Prioridade recomendada, antes de qualquer dado que não seja o seed de laborató
 
 ### Fora do exame
 
-- Exploração contra host que não seja o laboratório do grupo.
-- Varredura ativa (ZAP/Burp) e captura de tela. As pastas `docs/scans/` e `evidencias/` continuam à espera dessa coleta.
-- Correção aplicada e reteste em ambiente implantado.
+- Exploração nova, além do que o grupo já gravou em `docs/scans/`.
+- Reteste na origem publicada depois do merge das branches de correção.
 - Dependências de terceiros (cadeia de suprimento, A03:2025). Não houve análise de CVEs de bibliotecas.
 - O identificador que a tela de notas envia para `PATCH /api/notas/:id` pode não ser o id da linha de nota. Isso é defeito funcional. Não entra como achado. A falha de segurança desse endpoint é a ausência de autorização, independente de qual id a tela manda.
 
@@ -67,7 +68,8 @@ O roteiro segue o OWASP Web Security Testing Guide (WSTG), na modalidade white b
 | WSTG-INPV | Concatenação SQL, HTML na saída, DTOs | ACH-01, ACH-02 |
 | WSTG-ERRH | `AllExceptionsFilter` | ACH-05 |
 | WSTG-CRYP | MD5, segredo JWT embutido, token de reset sem segredo | ACH-04, ACH-05 |
-| WSTG-CLNT | `{@html}`, hash da URL, CORS | ACH-02, ACH-06 |
+| WSTG-CLNT | `{@html}`, hash da URL, CORS, clickjacking | ACH-02, ACH-06, ACH-07 |
+| WSTG-CONF (dinâmico) | ZAP 2.17 em 21/11/2026 sobre a origem HTTPS; histórico Burp do mesmo dia | ACH-07; demais alertas do ZAP revisados na ficha |
 | WSTG-BUSL | Regra de nota e de boletim só na interface | ACH-03 |
 
 Cada achado foi classificado com CVSS 3.1 (métricas base), calculado pela especificação FIRST. A faixa usada é a do `docs/templates/GUIA-CVSS.md`: crítica a partir de 9,0, alta de 7,0 a 8,9.
@@ -80,7 +82,7 @@ A taxonomia do relatório é a OWASP Top 10:2025. As pastas já existentes do tr
 | ACH-03 e parte do ACH-05 | A01 Broken Access Control |
 | ACH-04 | A07 Authentication Failures |
 | Hash MD5 | A04 Cryptographic Failures |
-| ACH-06 | A02 Security Misconfiguration |
+| ACH-06 e ACH-07 | A02 Security Misconfiguration |
 | Erro com SQL e pilha | A10 Mishandling of Exceptional Conditions |
 
 Não houve teste de A03 Software Supply Chain Failures, A06 Insecure Design como categoria isolada, A08 Integrity Failures além do que já está na sessão, nem A09 Logging Failures além do token escrito em log.
@@ -102,8 +104,9 @@ Dados de interesse no seed de laboratório: um administrador, três professores 
 | ACH-02 | XSS armazenado no mural e XSS de DOM na busca | A05 | CWE-79 | 8.7 | Alta |
 | ACH-05 | Hash MD5 de senha na resposta e detalhe interno no erro | A01, A04, A10 | CWE-200, CWE-916, CWE-209 | 7.5 | Alta |
 | ACH-06 | Banco com senha padrão e porta publicada; CORS reflexivo | A02 | CWE-798, CWE-942 | 9.8 se a porta for alcançável; 5.4 no CORS | Alta no laboratório local |
+| ACH-07 | Cabeçalhos ausentes: CSP, clickjacking, HSTS e `nosniff` | A02 | CWE-1021, CWE-693 | 4.3 | Média |
 
-Ordem do quadro: nota base, e no empate o que não exige conta. ACH-06 fica por último porque a nota 9.8 só vale se o PostgreSQL aceitar conexão de fora da máquina. Isso não foi medido.
+Ordem do quadro: nota base, e no empate o que não exige conta. ACH-06 fica depois dos itens altos porque a nota 9.8 só vale se o PostgreSQL aceitar conexão de fora da máquina. Isso não foi medido. ACH-07 fecha o quadro: é defesa em profundidade, não um caminho novo até os dados.
 
 ## 6. Achados
 
@@ -175,6 +178,20 @@ O texto abaixo resume a ficha. A versão com checklist, pré-condição e crité
 
 **Correção.** Patch 7.
 
+### ACH-07 — Cabeçalhos de segurança
+
+**Onde.** Origem HTTPS publicada, conferida pelo ZAP em `docs/scans/zap/zap-report-2026-11-21.html`, e `infra/Caddyfile.tpl`, que não envia cabeçalho de segurança.
+
+**Falha.** Faltam `Content-Security-Policy`, proteção contra enquadramento (`X-Frame-Options` ou `frame-ancestors`), `Strict-Transport-Security` e `X-Content-Type-Options`.
+
+**Impacto.** Outra página pode embutir a interface e induzir clique de quem já está autenticado. Os outros três cabeçalhos são controles que não existem; não substituem a correção do XSS nem a do cookie.
+
+**CVSS.** `AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:N` = 4.3, pelo clickjacking.
+
+**Fora do quadro.** No mesmo XML, o ZAP marcou integridade de sub-recurso, comentário suspeito, “modern web application” e cache. O comentário é a licença ISC do `lucide-svelte`. A integridade de sub-recurso não se aplica ao JavaScript e à folha servidos pela própria origem. Os outros dois alertas são informativos. Nenhum vira achado.
+
+**Correção.** Incluir os quatro cabeçalhos no Caddy. Ainda não está no Patch 7.
+
 ## 7. Correções e validação
 
 O detalhe de código está em `docs/correcoes/PATCHES.md`. Resumo do que o enunciado exige (três críticas) e do que o quadro pede em seguida.
@@ -182,14 +199,14 @@ O detalhe de código está em `docs/correcoes/PATCHES.md`. Resumo do que o enunc
 | Patch | Achado | Estado | O que o reteste precisa mostrar |
 |-------|--------|--------|---------------------------------|
 | 1 | ACH-01 | Proposto | Metacaractere SQL não muda o comando e não volta no JSON. Login legítimo continua |
-| 2 | ACH-04.1 | Proposto | Token não emitido não troca senha. Token emitido funciona uma vez e não aparece em log |
-| 3 | ACH-04.2 | Proposto | Segredo antigo e token vencido recebem 401. Cookie sai com `HttpOnly` |
-| 4 | ACH-03 | Proposto | Aluno recebe 403 ao ler boletim alheio, lançar nota, listar ou apagar usuários, ou enviar `role` |
-| 5 | ACH-02 | Proposto | Marcação no recado, no nome e na busca aparece como texto |
+| 2 | ACH-04.1 | Na branch `fix/ach-04-auth-sessao`, sem merge | Token não emitido não troca senha. Paulo Fontana registrou suíte local e prints de perfil em 25/11 |
+| 3 | ACH-04.2 | Na mesma branch, sem merge | Segredo antigo e token vencido recebem 401. Cookie sai com `HttpOnly` |
+| 4 | ACH-03 | Na branch `fix/broken-access-control`, sem merge | Aluno recebe 403 ao ler boletim alheio, lançar nota, listar ou apagar usuários, ou enviar `role`. Autor: Murilo Ghizzi |
+| 5 | ACH-02 | Na branch `fix/ach-02-xss`, PR #1, sem merge | Marcação no recado, no nome e na busca aparece como texto. Autor: David Marlon |
 | 6 | ACH-05 | Proposto | JSON sem a chave `senha`. Erro sem `stack` e sem `query` |
 | 7 | ACH-06 | Proposto | Porta do banco e CORS restritos ao laboratório. Swagger fora do modo de produção |
 
-Validação desta versão: revisão da correção proposta contra o código vulnerável. Não houve execução do patch, portanto não há reteste local nem pós-deploy. O checklist de screenshot e de proxy das fichas permanece aberto de propósito.
+No `master`, a validação continua sendo a revisão do código vulnerável. O reteste que já existe está nas branches, não na linha publicada. O histórico Burp e o HTML do ZAP estão em `docs/scans/`.
 
 Ordem de aplicação sugerida: Patch 3, Patch 1, Patch 2, Patch 4, depois 5, 6 e 7. Retestar cada um com as contas do seed antes de seguir.
 
@@ -200,10 +217,12 @@ Ordem de aplicação sugerida: Patch 3, Patch 1, Patch 2, Patch 4, depois 5, 6 e
 - Resposta de erro única para o cliente. Detalhe técnico só no log, sem senha, token ou SQL.
 - Separar DTO de entrada e DTO de saída. A entidade com a coluna `senha` não deve ser o corpo HTTP.
 - Manter o seed e a senha de exemplo confinados ao compose local.
+- Publicar CSP, HSTS, `nosniff` e bloqueio de frame no Caddy antes de tratar o ACH-07 como fechado.
 
 ## 9. Limitações
 
-- Não foi feita exploração ativa, varredura ZAP nem histórico de proxy. A confirmação é o código. Há print de cada trecho em `docs/achados/ACH-*/evidencias/`. A evidência da aplicação em execução, pedida pelo template, continua com o grupo.
+- Há print de código em `docs/achados/ACH-*/evidencias/`. O ZAP e o Burp de 21/11 estão em `docs/scans/`. Esta revisão não repetiu o scan nem abriu as branches para um novo teste.
+- As correções de David, Paulo e Murilo não estão no `master`. O relatório descreve o código publicado e aponta a branch em que cada correção já foi escrita.
 - Não foi medido se a porta 5432 aceita conexão além de localhost. A nota 9.8 do ACH-06 depende disso.
 - Não foi feita análise de CVEs das dependências.
 - Não foi verificado o comportamento do driver diante de mais de um comando na mesma string. A nota de disponibilidade do ACH-01 considera que a classe da falha permite escrita SQL, o que o `UPDATE` concatenado já demonstra por si.
@@ -211,7 +230,7 @@ Ordem de aplicação sugerida: Patch 3, Patch 1, Patch 2, Patch 4, depois 5, 6 e
 
 ## 10. Conclusão
 
-O laboratório cumpre o papel de concentrar falhas do Top 10: injeção, autenticação, controle de acesso, criptografia de senha, configuração e tratamento de erro. As três críticas (SQL concatenado, token de senha previsível e JWT fixo sem expiração) bastam, cada uma sozinha, para assumir contas da aplicação. A correção proposta ataca essas três primeiro e deixa o código atual intacto até o grupo registrar a evidência dinâmica e aplicar os patches numa cópia de reteste.
+O laboratório cumpre o papel de concentrar falhas do Top 10: injeção, autenticação, controle de acesso, criptografia de senha, configuração e tratamento de erro. As três críticas (SQL concatenado, token de senha previsível e JWT fixo sem expiração) bastam, cada uma sozinha, para assumir contas da aplicação. Os pushes dos colegas não criam uma quarta crítica. Acrescentam correção ainda fora do `master` e um achado médio de cabeçalhos (ACH-07), depois de descartar os alertas informativos e o falso positivo do ZAP.
 
 ## Referências
 
@@ -220,4 +239,4 @@ O laboratório cumpre o papel de concentrar falhas do Top 10: injeção, autenti
 - FIRST CVSS v3.1 — https://www.first.org/cvss/v3.1/specification-document
 - Calculadora CVSS 3.1 — https://www.first.org/cvss/calculator/3.1
 - OWASP Cheat Sheet Series (SQL Injection, XSS Prevention, Authorization, Forgot Password, JWT)
-- CWE-89, CWE-79, CWE-200, CWE-209, CWE-613, CWE-639, CWE-640, CWE-798, CWE-862, CWE-915, CWE-916, CWE-942
+- CWE-89, CWE-79, CWE-200, CWE-209, CWE-613, CWE-639, CWE-640, CWE-693, CWE-798, CWE-862, CWE-915, CWE-916, CWE-942, CWE-1021
