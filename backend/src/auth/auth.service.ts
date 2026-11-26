@@ -19,12 +19,14 @@ export class AuthService {
     const hash = this.hashSenha(senha);
 
     const result = await this.dataSource.query(
-      `SELECT * FROM usuarios WHERE username = '${username}' AND senha = '${hash}'`
+      'SELECT * FROM usuarios WHERE username = $1 AND senha = $2',
+      [username, hash],
     );
 
     if (!result || result.length === 0) {
       const userExists = await this.dataSource.query(
-        `SELECT id FROM usuarios WHERE username = '${username}'`
+        'SELECT id FROM usuarios WHERE username = $1',
+        [username],
       );
 
       if (!userExists || userExists.length === 0) {
@@ -75,7 +77,8 @@ export class AuthService {
     const hash = this.hashSenha(novaSenha);
 
     const result = await this.dataSource.query(
-      `UPDATE usuarios SET senha = '${hash}' WHERE email = '${email}' RETURNING id`
+      'UPDATE usuarios SET senha = $1 WHERE email = $2 RETURNING id',
+      [hash, email],
     );
 
     if (!result || result.length === 0) {
