@@ -1,0 +1,14 @@
+ACH-04 — Cookie de sessão na versão original
+Origem: histórico do Burp do grupo, docs/scans/burp/proxy-history-2026-11-21, item 11 (contagem a partir de 1).
+Data registrada: Sat Nov 21 10:29:35 GMT-03:00 2026
+Servidor registrado: sigacad.com.br
+
+Trecho da requisição
+POST /api/auth/login HTTP/2
+Content-Type: application/json
+
+Trecho da resposta correspondente
+HTTP/2 201 Created
+Set-Cookie: token=[OCULTO]; Path=/; SameSite=Lax
+
+Os trechos preservam as linhas de HTTP e todos os atributos do cookie token. O valor do cookie, os corpos das mensagens e os demais cabeçalhos foram omitidos.

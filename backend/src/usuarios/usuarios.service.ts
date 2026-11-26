@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Usuario } from '../entities/usuario.entity';
+import { Role, Usuario } from '../entities/usuario.entity';
 import { AtualizarPerfilDto } from './dto/atualizar-perfil.dto';
 
 @Injectable()
@@ -25,15 +25,15 @@ export class UsuariosService {
   }
 
   async atualizar(id: string, dto: AtualizarPerfilDto): Promise<Usuario> {
-    const usuario = await this.usuariosRepository.findOne({ where: { id } });
-
-    if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado');
+    const campos: Partial<Usuario> = {};
+    if (dto.nomeExibicao !== undefined) campos.nomeExibicao = dto.nomeExibicao;
+    if ('role' in dto && typeof dto.role === 'string') campos.role = dto.role as Role;
+    if (dto.email !== undefined) {
+      campos.email = dto.email;
+      campos.resetTokenHash = null;
+      campos.resetTokenExpiraEm = null;
     }
-
-    Object.assign(usuario, dto);
-    await this.usuariosRepository.save(usuario);
-
+    if (Object.keys(campos).length) await this.usuariosRepository.update(id, campos);
     return this.findById(id);
   }
 

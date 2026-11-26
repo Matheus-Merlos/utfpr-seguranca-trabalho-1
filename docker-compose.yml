@@ -24,6 +24,10 @@ services:
       - "3000:3000"
     environment:
       DB_HOST: postgres
+      JWT_SECRET: ${JWT_SECRET:?Configure JWT_SECRET no arquivo .env}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: sigacad@example.test
       DB_PORT: 5432
       DB_USER: ${DB_USER:-sigacad}
       DB_PASSWORD: ${DB_PASSWORD:-sigacad}
@@ -34,6 +38,11 @@ services:
     volumes:
       - ./backend/src:/app/src
       - /app/node_modules
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:8025:8025"
 
   front:
     build:

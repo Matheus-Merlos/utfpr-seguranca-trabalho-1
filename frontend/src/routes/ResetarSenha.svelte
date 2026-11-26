@@ -9,11 +9,6 @@
   let error = $state('');
   let loading = $state(false);
 
-  $effect(() => {
-    const params = new URLSearchParams(window.location.search);
-    token = params.get('token') || '';
-  });
-
   async function handleSubmit(e: Event) {
     e.preventDefault();
     error = '';
@@ -81,11 +76,11 @@
           {/if}
 
           <div class="space-y-2">
-            <Label for="token">Token</Label>
+            <Label for="token">Código de recuperação</Label>
             <Input
               id="token"
               type="text"
-              placeholder="Cole o token recebido"
+              placeholder="Cole o código recebido por e-mail"
               bind:value={token}
               disabled={loading}
             />
@@ -96,7 +91,7 @@
             <Input
               id="novaSenha"
               type="password"
-              placeholder="Digite a nova senha"
+              placeholder="Use de 12 a 128 caracteres"
               bind:value={novaSenha}
               disabled={loading}
             />

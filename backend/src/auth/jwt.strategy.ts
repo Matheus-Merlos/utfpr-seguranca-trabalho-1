@@ -1,24 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Usuario } from '../entities/usuario.entity';
+import { segredoJwt, Sessao, sessaoValida } from './sessao';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(@InjectRepository(Usuario) private readonly usuarios: Repository<Usuario>) {
     super({
-      jwtFromRequest: (req: Request) => {
-        if (req && req.cookies) {
-          return req.cookies['token'];
-        }
-        return null;
-      },
-      ignoreExpiration: true,
-      secretOrKey: 'segredo123',
+      jwtFromRequest: (req: Request) => req?.cookies?.token ?? null,
+      algorithms: ['HS256'],
+      secretOrKey: segredoJwt(),
     });
   }
 
-  async validate(payload: any) {
-    return { sub: payload.sub, username: payload.username, role: payload.role };
+  async validate(payload: Sessao) {
+    if (!sessaoValida(payload)) throw new UnauthorizedException();
+    const conta = await this.usuarios.findOne({
+      where: { id: payload.sub, versaoSessao: payload.versao },
+      select: ['id', 'username', 'email', 'nomeExibicao', 'role'],
+    });
+    if (!conta) throw new UnauthorizedException();
+    return { ...conta, sub: conta.id };
   }
 }
