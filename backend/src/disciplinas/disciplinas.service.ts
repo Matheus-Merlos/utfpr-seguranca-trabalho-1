@@ -21,11 +21,13 @@ export class DisciplinasService {
       });
     }
 
+    const padrao = `%${termo}%`;
     const result = await this.dataSource.query(
       `SELECT d.*, u."nomeExibicao" as "professorNome"
        FROM disciplinas d
        LEFT JOIN usuarios u ON d."professorId" = u.id
-       WHERE d.nome LIKE '%${termo}%' OR d.codigo LIKE '%${termo}%'`
+       WHERE d.nome LIKE $1 OR d.codigo LIKE $2`,
+      [padrao, padrao],
     );
     return result;
   }
